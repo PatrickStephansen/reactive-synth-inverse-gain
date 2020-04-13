@@ -1,50 +1,156 @@
-mod utils;
-
-use wasm_bindgen::prelude::*;
-
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-#[wasm_bindgen]
-pub struct InverseGain {
-    input: Vec<f32>,
-    output: Vec<f32>,
-    divisor: Vec<f32>,
-    zero_divisor_fallback: Vec<f32>,
+const RENDER_QUANTUM: usize = 128;
+
+fn clamp(min_value: f32, max_value: f32, value: f32) -> f32 {
+    if value < min_value {
+        return min_value;
+    } else {
+        if value > max_value {
+            return max_value;
+        } else {
+            return value;
+        }
+    };
 }
 
-#[wasm_bindgen]
+fn get_parameter(param: &Vec<f32>, min_value: f32, max_value: f32, index: usize) -> f32 {
+    if param.len() > 1 {
+        clamp(min_value, max_value, param[index])
+    } else {
+        clamp(min_value, max_value, param[index])
+    }
+}
+
+#[link(wasm_import_module = "console")]
+extern "C" {
+    fn log(s: f32);
+}
+
+pub struct InverseGain {
+    quotient: Vec<f32>,
+    divisor: Vec<f32>,
+    zero_divisor_fallback: Vec<f32>,
+    max_quotient: f32,
+    min_quotient: f32,
+    max_divisor: f32,
+    min_divisor: f32,
+    max_divisor_fallback: f32,
+    min_divisor_fallback: f32,
+    output: Vec<f32>,
+}
+
 impl InverseGain {
     pub fn new(
-        input: Vec<f32>,
-        output: Vec<f32>,
-        divisor: Vec<f32>,
-        zero_divisor_fallback: Vec<f32>,
+        min_quotient: f32,
+        max_quotient: f32,
+        min_divisor: f32,
+        max_divisor: f32,
+        min_divisor_fallback: f32,
+        max_divisor_fallback: f32,
     ) -> InverseGain {
+        let mut output = Vec::with_capacity(RENDER_QUANTUM);
+        output.resize(RENDER_QUANTUM, 0.0);
+        let mut quotient = Vec::with_capacity(RENDER_QUANTUM);
+        quotient.resize(RENDER_QUANTUM, 0.0);
+        let mut divisor = Vec::with_capacity(RENDER_QUANTUM);
+        divisor.resize(RENDER_QUANTUM, 0.0);
+        let mut zero_divisor_fallback = Vec::with_capacity(RENDER_QUANTUM);
+        zero_divisor_fallback.resize(RENDER_QUANTUM, 0.0);
         InverseGain {
-            input,
-            output,
+            quotient,
             divisor,
             zero_divisor_fallback,
+            output,
+            min_quotient,
+            max_quotient,
+            min_divisor,
+            max_divisor,
+            min_divisor_fallback,
+            max_divisor_fallback,
         }
     }
 
     pub fn process(&mut self) {
-        let length = self.input.len();
-        self.output = (0..length)
-            .map(|i| {
-                if self.divisor[i] == 0.0 {
-                    return self.input[i] / self.zero_divisor_fallback[i];
-                }
-                return self.input[i] / self.divisor[i];
-            })
-            .collect();
+        for i in 0..RENDER_QUANTUM {
+            if self.divisor[i] == 0.0 {
+                self.output[i] =
+                    get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
+                        / get_parameter(
+                            &self.zero_divisor_fallback,
+                            self.min_divisor_fallback,
+                            self.max_divisor_fallback,
+                            i,
+                        );
+            }
+            self.output[i] = get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
+                / get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i);
+        }
     }
 
-    pub fn get_output(&self)-> *const f32{
+    pub fn set_inputs(
+        &mut self,
+        quotient: Vec<f32>,
+        divisor: Vec<f32>,
+        zero_divisor_fallback: Vec<f32>,
+    ) {
+        self.quotient = quotient;
+        self.divisor = divisor;
+        self.zero_divisor_fallback = zero_divisor_fallback;
+    }
+
+    pub fn get_output(&self) -> *const f32 {
         self.output.as_ptr()
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn init(
+    min_quotient: f32,
+    max_quotient: f32,
+    min_divisor: f32,
+    max_divisor: f32,
+    min_divisor_fallback: f32,
+    max_divisor_fallback: f32,
+) -> *mut InverseGain {
+    Box::into_raw(Box::new(InverseGain::new(
+        min_quotient,
+        max_quotient,
+        min_divisor,
+        max_divisor,
+        min_divisor_fallback,
+        max_divisor_fallback,
+    )))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn process_quantum(
+    me: *mut InverseGain,
+) -> *mut f32 {
+    (*me).process();
+    (*me).output.as_mut_ptr()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn get_quotient_ptr(me: *mut InverseGain) -> *mut f32 {
+    (*me).quotient.as_mut_ptr()
+}
+#[no_mangle]
+pub unsafe extern "C" fn get_divisor_ptr(me: *mut InverseGain) -> *mut f32 {
+    (*me).divisor.as_mut_ptr()
+}
+#[no_mangle]
+pub unsafe extern "C" fn get_divisor_fallback_ptr(me: *mut InverseGain) -> *mut f32 {
+    (*me).zero_divisor_fallback.as_mut_ptr()
+}
+// There's nothing in the wasm spec that allows memory to ever be freed
+// There's also no hook for destruction of AudioWorkletProcessor
+// 2 specs would have to change for this to be of any use
+#[no_mangle]
+pub unsafe extern "C" fn free(me: *mut InverseGain) {
+    drop(Box::from_raw(me))
 }
