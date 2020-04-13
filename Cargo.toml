@@ -7,7 +7,6 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-
 [dependencies]
 
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size

@@ -22,7 +22,11 @@ fn get_parameter(param: &Vec<f32>, min_value: f32, max_value: f32, index: usize)
     if param.len() > 1 {
         clamp(min_value, max_value, param[index])
     } else {
-        clamp(min_value, max_value, param[index])
+        if param.len() == 0 {
+            clamp(min_value, max_value, 0.0)
+        } else {
+            clamp(min_value, max_value, param[0])
+        }
     }
 }
 
@@ -55,16 +59,10 @@ impl InverseGain {
     ) -> InverseGain {
         let mut output = Vec::with_capacity(RENDER_QUANTUM);
         output.resize(RENDER_QUANTUM, 0.0);
-        let mut quotient = Vec::with_capacity(RENDER_QUANTUM);
-        quotient.resize(RENDER_QUANTUM, 0.0);
-        let mut divisor = Vec::with_capacity(RENDER_QUANTUM);
-        divisor.resize(RENDER_QUANTUM, 0.0);
-        let mut zero_divisor_fallback = Vec::with_capacity(RENDER_QUANTUM);
-        zero_divisor_fallback.resize(RENDER_QUANTUM, 0.0);
         InverseGain {
-            quotient,
-            divisor,
-            zero_divisor_fallback,
+            quotient: Vec::with_capacity(RENDER_QUANTUM),
+            divisor: Vec::with_capacity(RENDER_QUANTUM),
+            zero_divisor_fallback: Vec::with_capacity(RENDER_QUANTUM),
             output,
             min_quotient,
             max_quotient,
@@ -77,7 +75,7 @@ impl InverseGain {
 
     pub fn process(&mut self) {
         for i in 0..RENDER_QUANTUM {
-            if self.divisor[i] == 0.0 {
+            if get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i) == 0.0 {
                 self.output[i] =
                     get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
                         / get_parameter(
@@ -130,7 +128,15 @@ pub unsafe extern "C" fn init(
 #[no_mangle]
 pub unsafe extern "C" fn process_quantum(
     me: *mut InverseGain,
+    quotient_len: usize,
+    divistor_len: usize,
+    fallback_len: usize,
 ) -> *mut f32 {
+    // the expectation is that the parameters are copied directly into memory before this is called
+    // so fix the length if it changed
+    (*me).quotient.set_len(quotient_len);
+    (*me).divisor.set_len(divistor_len);
+    (*me).zero_divisor_fallback.set_len(fallback_len);
     (*me).process();
     (*me).output.as_mut_ptr()
 }
