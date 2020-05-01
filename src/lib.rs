@@ -30,10 +30,10 @@ fn get_parameter(param: &Vec<f32>, min_value: f32, max_value: f32, index: usize)
     }
 }
 
-#[link(wasm_import_module = "console")]
-extern "C" {
-    fn log(s: f32);
-}
+// #[link(wasm_import_module = "console")]
+// extern "C" {
+//     fn log(s: f32);
+// }
 
 pub struct InverseGain {
     quotient: Vec<f32>,
