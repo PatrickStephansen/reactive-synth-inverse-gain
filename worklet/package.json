@@ -1,0 +1,29 @@
+{
+  "name": "reactive-synth-inverse-gain",
+  "version": "1.0.0",
+  "description": "Inverse gain audio worklet node for reactive-synth",
+  "main": "inverse-gain.js",
+  "files": [
+    "inverse-gain.js",
+    "reactive_synth_inverse_gain.wasm"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/PatrickStephansen/reactive-synth-inverse-gain.git"
+  },
+  "keywords": [
+    "worklet",
+    "audioworkletprocessor",
+    "webaudio"
+  ],
+  "author": "Patrick Stephansen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PatrickStephansen/reactive-synth-inverse-gain/issues"
+  },
+  "homepage": "https://github.com/PatrickStephansen/reactive-synth-inverse-gain#readme"
+}
