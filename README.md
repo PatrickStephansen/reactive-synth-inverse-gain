@@ -16,3 +16,5 @@ Inspect size with:
 ```bash
 twiggy top -n 20 worklet/reactive_synth_inverse_gain.wasm
 ```
+
+Run `npm link` from the worklet directory before trying to build the reactive-synth app (the dependent app not in this repo)
