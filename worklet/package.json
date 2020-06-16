@@ -1,6 +1,6 @@
 {
   "name": "reactive-synth-inverse-gain",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Inverse gain audio worklet node for reactive-synth",
   "main": "inverse-gain.js",
   "files": [
