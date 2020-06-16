@@ -1,22 +1,26 @@
-# WASM audio nodes
+# reactive-synth-inverse-gain
 
-Rust project targeting WebAssembly for audio processing. The wasm binaries should be wrapped in a node package, but there's no js wrapping code included at this point. It will be included in the future once I'm sure this approach can actually solve my performance issues.
+WASM implementation of an inverse gain audio processing node compatible with the web audio API
 
 ## build
 
 build command:
 
 ```bash
-cargo build --release --target=wasm32-unknown-unknown && \
-wasm-opt -Oz --strip-debug -o target/wasm32-unknown-unknown/release/wasm_audio_nodes_opt.wasm target/wasm32-unknown-unknown/release/wasm_audio_nodes.wasm
+cargo build --features wee_alloc --release --target=wasm32-unknown-unknown && \
+wasm-opt -Oz --strip-debug -o target/wasm32-unknown-unknown/release/reactive_synth_inverse_gain_opt.wasm \
+target/wasm32-unknown-unknown/release/reactive_synth_inverse_gain.wasm
 ```
 Inspect size with:
 
 ```bash
-twiggy top -n 20 target/wasm32-unknown-unknown/release/wasm_audio_nodes_opt.wasm
+twiggy top -n 20 target/wasm32-unknown-unknown/release/reactive_synth_inverse_gain_opt.wasm
 ```
-
 
 ## package
 
-Coming soon.
+from worklet directory:
+
+```bash
+npm run package
+```

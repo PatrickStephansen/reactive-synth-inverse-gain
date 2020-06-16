@@ -1,5 +1,5 @@
 [package]
-name = "wasm-audio-nodes"
+name = "reactive-synth-inverse-gain"
 version = "0.1.0"
 authors = ["Patrick Stephansen <pstephansen89@gmail.com>"]
 edition = "2018"
@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 # allocator, however.
 #
 # Unfortunately, `wee_alloc` requires nightly Rust when targeting wasm for now.
-wee_alloc = { version = "0.4.2", optional = true }
+wee_alloc = { version = "0.4.5", optional = true }
 
 [dev-dependencies]
 

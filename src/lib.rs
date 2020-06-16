@@ -129,13 +129,13 @@ pub unsafe extern "C" fn init(
 pub unsafe extern "C" fn process_quantum(
     me: *mut InverseGain,
     quotient_len: usize,
-    divistor_len: usize,
+    divisor_len: usize,
     fallback_len: usize,
 ) -> *mut f32 {
     // the expectation is that the parameters are copied directly into memory before this is called
     // so fix the length if it changed
     (*me).quotient.set_len(quotient_len);
-    (*me).divisor.set_len(divistor_len);
+    (*me).divisor.set_len(divisor_len);
     (*me).zero_divisor_fallback.set_len(fallback_len);
     (*me).process();
     (*me).output.as_mut_ptr()
