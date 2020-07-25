@@ -82,11 +82,18 @@ impl InverseGain {
                     self.max_divisor_fallback,
                     i,
                 );
+            } else {
+                self.output[i] =
+                    get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
+                        / get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i);
             }
-            self.output[i] = get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
-                / get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i);
         }
     }
+}
+
+#[link(wasm_import_module = "console")]
+extern "C" {
+    fn log(n: f32);
 }
 
 #[no_mangle]
