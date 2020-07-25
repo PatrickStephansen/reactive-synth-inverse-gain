@@ -76,14 +76,12 @@ impl InverseGain {
     pub fn process(&mut self) {
         for i in 0..RENDER_QUANTUM {
             if get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i) == 0.0 {
-                self.output[i] =
-                    get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
-                        / get_parameter(
-                            &self.zero_divisor_fallback,
-                            self.min_divisor_fallback,
-                            self.max_divisor_fallback,
-                            i,
-                        );
+                self.output[i] = get_parameter(
+                    &self.zero_divisor_fallback,
+                    self.min_divisor_fallback,
+                    self.max_divisor_fallback,
+                    i,
+                );
             }
             self.output[i] = get_parameter(&self.quotient, self.min_quotient, self.max_quotient, i)
                 / get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i);
