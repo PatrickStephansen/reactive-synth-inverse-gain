@@ -87,21 +87,6 @@ impl InverseGain {
                 / get_parameter(&self.divisor, self.min_divisor, self.max_divisor, i);
         }
     }
-
-    pub fn set_inputs(
-        &mut self,
-        quotient: Vec<f32>,
-        divisor: Vec<f32>,
-        zero_divisor_fallback: Vec<f32>,
-    ) {
-        self.quotient = quotient;
-        self.divisor = divisor;
-        self.zero_divisor_fallback = zero_divisor_fallback;
-    }
-
-    pub fn get_output(&self) -> *const f32 {
-        self.output.as_ptr()
-    }
 }
 
 #[no_mangle]
@@ -150,11 +135,4 @@ pub unsafe extern "C" fn get_divisor_ptr(me: *mut InverseGain) -> *mut f32 {
 #[no_mangle]
 pub unsafe extern "C" fn get_divisor_fallback_ptr(me: *mut InverseGain) -> *mut f32 {
     (*me).zero_divisor_fallback.as_mut_ptr()
-}
-// There's nothing in the wasm spec that allows memory to ever be freed
-// There's also no hook for destruction of AudioWorkletProcessor
-// 2 specs would have to change for this to be of any use
-#[no_mangle]
-pub unsafe extern "C" fn free(me: *mut InverseGain) {
-    drop(Box::from_raw(me))
 }
