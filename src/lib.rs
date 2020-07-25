@@ -91,11 +91,6 @@ impl InverseGain {
     }
 }
 
-#[link(wasm_import_module = "console")]
-extern "C" {
-    fn log(n: f32);
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn init(
     min_quotient: f32,

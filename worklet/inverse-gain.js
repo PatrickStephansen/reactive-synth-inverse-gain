@@ -33,9 +33,7 @@ registerProcessor(
     }
 
     async initWasmModule(wasmModule) {
-      this.wasmModule = await WebAssembly.instantiate(wasmModule, {
-        console: { log: (s) => console.log("message from wasm", s) },
-      });
+      this.wasmModule = await WebAssembly.instantiate(wasmModule, {});
       this.internalProcessorPtr = this.wasmModule.exports.init(
         defaultMin,
         defaultMax,
