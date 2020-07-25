@@ -52,7 +52,7 @@ registerProcessor(
     process(inputs, outputs, parameters) {
       if (this.wasmModule) {
         this.float32WasmMemory.set(
-          inputs?.[0]?.[0] ?? this.defaultInput,
+          (inputs && inputs[0] && inputs[0][0]) || this.defaultInput,
           this.wasmModule.exports.get_quotient_ptr(this.internalProcessorPtr) /
             bytesPerSample
         );
@@ -70,7 +70,7 @@ registerProcessor(
         const outputPointer =
           this.wasmModule.exports.process_quantum(
             this.internalProcessorPtr,
-            inputs?.[0]?.[0]?.length ?? this.defaultInput.length,
+            ((inputs && inputs[0] && inputs[0][0]) || this.defaultInput).length,
             parameters.divisor.length,
             parameters.zeroDivisorFallback.length
           ) / bytesPerSample;
