@@ -22,6 +22,7 @@ registerProcessor(
 
     constructor() {
       super();
+      this.defaultInput = [0];
       this.port.onmessage = (event) => {
         if (event.data.type === "wasm") {
           this.initWasmModule(event.data.wasmModule).then(() =>
@@ -49,11 +50,9 @@ registerProcessor(
     }
 
     process(inputs, outputs, parameters) {
-      // Garbage collection still happens every ~5s clearing 1MB - even if the process function does nothing but return true.
-      // The allocation of the inputs and parameters must be causing this, but it's surprising that they would be re-allocated every time.
-      if (inputs[0] && inputs[0][0] && inputs[0][0].length && this.wasmModule) {
+      if (this.wasmModule) {
         this.float32WasmMemory.set(
-          inputs[0][0],
+          inputs?.[0]?.[0] ?? this.defaultInput,
           this.wasmModule.exports.get_quotient_ptr(this.internalProcessorPtr) /
             bytesPerSample
         );
@@ -71,7 +70,7 @@ registerProcessor(
         const outputPointer =
           this.wasmModule.exports.process_quantum(
             this.internalProcessorPtr,
-            inputs[0][0].length,
+            inputs?.[0]?.[0]?.length ?? this.defaultInput.length,
             parameters.divisor.length,
             parameters.zeroDivisorFallback.length
           ) / bytesPerSample;
